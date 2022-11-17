@@ -1,74 +1,92 @@
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.firefox.FirefoxDriver;
 
 public class ComposeMail {
 
-	public static void main(String[] args) throws InterruptedException {
-		System.setProperty("webdriver.chrome.driver",
-				"/Users/proudparselmouth/eclipse-workspace-3/Email_Project/src/resources/chromedriver");
+	public static void main(String[] args) throws InterruptedException, IOException {
+		WebDriver driver;
 
-		WebDriver driver = new ChromeDriver();
-//	WebDriverManager.chromedriver().browserVersion("107.0.5304.87").setup();
-//		driver.manage().timeouts().pageLoadTimeout(3, TimeUnit.SECONDS);
+		Properties p = new Properties();
+		FileInputStream fi = new FileInputStream(
+				"/Users/proudparselmouth/eclipse-workspace-3/Email_Project/src/test/java/Environment.properties");
+		p.load(fi);
+
+		String browsername = "chrome";
+
+		if (browsername.equals("chrome")) {
+			System.setProperty("webdriver.chrome.driver",
+					"/Users/proudparselmouth/eclipse-workspace-3/Email_Project/src/resources/chromedriver");
+			driver = new ChromeDriver();
+		} else {
+			driver = new FirefoxDriver();
+		}
+
+		driver.manage().timeouts().pageLoadTimeout(10, TimeUnit.SECONDS);
 		// launch url
-		driver.get("https://outlook.com/");
+		driver.get(p.getProperty("url"));
 		driver.manage().window().maximize();
-		driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
-		// click on sign in button
-		driver.findElement(By.xpath("/html/body/header/div/aside/div/nav/ul/li[2]/a")).click();
-		// enter username
-		driver.findElement(By.xpath("//*[@id=\"i0116\"]")).sendKeys("sainipoojait@outlook.com");
-		// click on next
-		driver.findElement(By.xpath("//*[@id=\"idSIButton9\"]")).click();
-		// enter password
-		driver.findElement(By.xpath("//*[@id=\"i0118\"]")).sendKeys("pooh@7725");
-		String nextButtonFullXpath = "/html/body/div/form[1]/div/div/div[2]/div[1]/div/div/div/div/div/div[3]/div/div[2]/div/div[4]/div[2]/div/div/div/div/input";
+		driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
 
-//		Thread.sleep(10000);
-//		 click on login
-		driver.findElement(By.xpath(nextButtonFullXpath)).click();
-		// click on checkbox dont show this again
-		driver.findElement(By.id("KmsiCheckboxField")).click();
+		// click on sign in button
+		driver.findElement(By.xpath(p.getProperty("signinbtnxpath"))).click();
+
+		// enter username
+		driver.findElement(By.xpath(p.getProperty("usernamexpath"))).sendKeys(p.getProperty("usernamevalue"));
+
+		// click on next
+		driver.findElement(By.xpath(p.getProperty("nextbtnxpath"))).click();
+
+		// enter password
+		driver.findElement(By.xpath(p.getProperty("passwordxpath"))).sendKeys(p.getProperty("passwordvalue"));
+
+		// click on login
+		driver.findElement(By.xpath(p.getProperty("afterpassnextBtnID"))).click();
+
+//		click on checkbox dont show this again
+		driver.findElement(By.id(p.getProperty("dontshowcheckboxXpath"))).click();
 
 		// click on yes button
-		String yesLoginButtonXpath = "/html/body/div/form/div/div/div[2]/div[1]/div/div/div/div/div/div[3]/div/div[2]/div/div[3]/div[2]/div/div/div[2]/input";
-		driver.findElement(By.xpath(yesLoginButtonXpath)).click();
+		driver.findElement(By.xpath(p.getProperty("yesBtnxpath"))).click();
 		Thread.sleep(1000);
-//printing title
+
+		// printing title
 		String title = driver.getTitle();
 		System.out.println(title);
 
 		// click on new message
+		driver.findElement(By.xpath(p.getProperty("newMsgXpath"))).click();
 
-		driver.findElement(By.xpath(
-				"/html/body/div[2]/div/div[2]/div[2]/div[1]/div/div/div/div/div/div[1]/div[2]/div/div/button/span"))
-				.click();
 		// write email id in to
-		String relPath = "//*[@id=\"docking_InitVisiblePart_0\"]/div/div[1]/div[1]/div/div[3]/div/div/div[1]";
-		WebElement elem = driver.findElement(By.xpath(relPath));
-		String script = "arguments[0].innerHTML='poojasaini7725@gmail.com'";
-		((JavascriptExecutor) driver).executeScript(script, elem);
-
+		driver.findElement(By.xpath(p.getProperty("ToXpath"))).sendKeys(p.getProperty("ToValue"));
+//		WebElement elem = driver.findElement(By.xpath(p.getProperty("ToXpath")));
+//		String script = "arguments[0].innerHTML='poojasaini7725@gmail.com'";
+//		((JavascriptExecutor) driver).executeScript(script, elem);
 		Thread.sleep(2000);
-		// writing something into subject
-		String subjectRelPath = "/html/body/div[2]/div/div[2]/div[2]/div[2]/div[2]/div/div/div[1]/div/div[3]/div[3]/div[1]/div/div/div/div[1]/div[2]/div[2]/div/div/div/input";
-		driver.findElement(By.id("TextField79")).sendKeys("this is an automated email");
-//click on sendemail button 
-		String sendEmailButtonXPath = "//*[@id=\"docking_InitVisiblePart_0\"]/div/div[3]/div[3]/div[1]/div/div/span/button[1]/span";
-		driver.findElement(By.xpath(sendEmailButtonXPath)).click();
 
+		// writing something into subject field
+		driver.findElement(By.id(p.getProperty("SubjectID"))).sendKeys(p.getProperty("SubjectValue"));
+
+		// click on sendemail button
+		driver.findElement(By.xpath(p.getProperty("SendemailBTNXpath"))).click();
 		Thread.sleep(6000); // waiting for email to reflect in sent
-		// verify sent email -- step 1(get sent items element )
-		String sentItemsXpath = "//*[@id=\"MainModule\"]/div/div/div[1]/div/div/div[1]/div/div[1]/div[3]/div";
-		driver.findElement(By.xpath(sentItemsXpath)).click();
-//verify automated sent email
-		String emailListElemXpath = "//div[contains(@aria-label, 'poojasaini7725@gmail.com this is an automated email')]";
-		WebElement elem2 = driver.findElement(By.xpath(emailListElemXpath));
+
+		// sent items -- step 1(get sent items element )
+		driver.findElement(By.xpath(p.getProperty("SentitemsXpath"))).click();
+
+		// verify automated sent email
+		WebElement elem2 = driver.findElement(By.xpath(p.getProperty("emailListElemXpath")));
+//		WebDriverWait wait = new WebDriverWait(driver, 20);
+//		WebElement myele;
+//		myele = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(title)));
+//		myele.click();
 		System.out.println(elem2.getText());
 		Thread.sleep(2000);
 
